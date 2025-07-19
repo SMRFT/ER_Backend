@@ -25,7 +25,7 @@ SECRET_KEY = 'django-insecure-mrc-3)l$wtcalpn3e4)g49cj@tx)utgw+522341v!p2jqrb_m3
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['env-5683222.in1.cloudlets.co.in','test.shinova.in']
 
 CORS_ALLOW_ALL_ORIGINS = True
 # Application definition
