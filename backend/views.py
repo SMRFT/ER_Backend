@@ -55,20 +55,41 @@ def erregister_patient(request):
     data = request.data.copy()
     data['erNumber'] = er_number
 
-    
+    employee_id = data.get('auth-user-id')
+    print("employee_id", employee_id)
+
 
     serializer = ERRegisterSerializer(data=data)
     if serializer.is_valid():
         serializer.save(
             created_date=datetime.now(),
             lastmodified_date=datetime.now(),
+            created_by=employee_id,
+            lastmodified_by=employee_id
         )
+
         return Response({
             "message": "Patient Registered Successfully",
             "erNumber": er_number
         }, status=status.HTTP_201_CREATED)
 
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+@csrf_exempt
+@api_view(['GET'])
+# @permission_classes([HasRolePermission])
+def get_patient_by_er_number(request):
+    er_number = request.GET.get("erNumber")
+    if not er_number:
+        return Response({"error": "erNumber is required"}, status=400)
+
+    try:
+        patient = ERRegister.objects.get(erNumber=er_number)
+        serializer = ERRegisterSerializer(patient)
+        return Response(serializer.data, status=200)
+    except ERRegister.DoesNotExist:
+        return Response({"error": "Patient not found"}, status=404)
+
 
 
 @api_view(['POST', 'GET'])
@@ -159,12 +180,13 @@ def er_billing(request):
     existing_count = ERBilling.objects.filter(billNumber__startswith=prefix).count()
     next_number = existing_count + 1
     bill_number = f"{prefix}/{next_number:02d}"   # e.g., "2526/06"
-
+    employee_id = data.get('auth-user-id')
+    print("employee_id", employee_id)
     # Step 3: Create a new record with billNumber and metadata
     data = request.data.copy()
     data['billNumber'] = bill_number
-    data['created_by'] = "chandra"
-    data['lastmodified_by'] = "chandra"
+    data['created_by'] = employee_id
+    data['lastmodified_by'] = employee_id
     data['created_date'] = datetime.now()
     data['lastmodified_date'] = datetime.now()
 
@@ -175,6 +197,20 @@ def er_billing(request):
     else:
         return Response(serializer.errors, status=400)
     
+
+@api_view(['GET'])
+@permission_classes([HasRolePermission])
+def search_er_billing(request):
+    er_number = request.GET.get('erNumber')
+    if not er_number:
+        return Response({"error": "erNumber parameter is required."}, status=400)
+
+    billing_records = ERBilling.objects.filter(erNumber=er_number)
+    if billing_records.exists():
+        serializer = ERBillingSerializer(billing_records, many=True)
+        return Response(serializer.data, status=200)
+    else:
+        return Response({"message": "No billing record found for this ER number."}, status=404)
 
 
 
