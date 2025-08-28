@@ -25,55 +25,37 @@ import pandas as pd
 
 
 
-@csrf_exempt
 @api_view(['POST'])
 @permission_classes([HasRolePermission])
-def erregister_patient(request):
-    today = date.today()
-    year = today.year
+def er_billing(request):
+    # Step 1: Generate bill number prefix as "2526"
+    current_year = datetime.now().year % 100      # e.g., 2025 → 25
+    next_year = (datetime.now().year + 1) % 100   # e.g., 2026 → 26
+    prefix = f"{current_year:02d}{next_year:02d}" # e.g., "2526"
 
-    # Determine financial year start
-    if today.month <= 3:
-        start_year = year - 1
-    else:
-        start_year = year
+    # Step 2: Count existing records with that prefix
+    existing_count = ERBilling.objects.filter(billNumber__startswith=prefix).count()
+    next_number = existing_count + 1
+    bill_number = f"{prefix}/{next_number:02d}"   # e.g., "2526/06"
 
-    prefix = f"ER0{str(start_year)[-2:]}"
-    existing_ers = ERRegister.objects.filter(erNumber__startswith=prefix).order_by('-erNumber')
-
-    if existing_ers.exists():
-        try:
-            last_number = int(existing_ers[0].erNumber.split("/")[-1])
-        except (ValueError, IndexError):
-            last_number = 0
-        next_number = last_number + 1
-    else:
-        next_number = 1
-
-    er_number = f"{prefix}/{str(next_number).zfill(6)}"
-
+    # ✅ Fix: copy request.data first
     data = request.data.copy()
-    data['erNumber'] = er_number
+    employee_id = data.get('auth-user-id')   # now safe to access
 
-    employee_id = data.get('auth-user-id')
-    print("employee_id", employee_id)
+    # Step 3: Add metadata
+    data['billNumber'] = bill_number
+    data['created_by'] = employee_id
+    data['lastmodified_by'] = employee_id
+    data['created_date'] = datetime.now()
+    data['lastmodified_date'] = datetime.now()
 
-
-    serializer = ERRegisterSerializer(data=data)
+    serializer = ERBillingSerializer(data=data)
     if serializer.is_valid():
-        serializer.save(
-            created_date=datetime.now(),
-            lastmodified_date=datetime.now(),
-            created_by=employee_id,
-            lastmodified_by=employee_id
-        )
+        serializer.save()
+        return Response(serializer.data, status=201)
+    else:
+        return Response(serializer.errors, status=400)
 
-        return Response({
-            "message": "Patient Registered Successfully",
-            "erNumber": er_number
-        }, status=status.HTTP_201_CREATED)
-
-    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 @csrf_exempt
 @api_view(['GET'])
@@ -316,3 +298,4 @@ def get_er_reports(request):
         "register": ERRegisterSerializer(register_qs, many=True).data,
         "billing": ERBillingSerializer(billing_qs, many=True).data,
     })
+
