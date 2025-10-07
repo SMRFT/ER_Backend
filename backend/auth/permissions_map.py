@@ -10,6 +10,7 @@ PAGE_MAPPING = {
     r'^/_b_a_c_k_e_n_d/ER/erregisteredit/?(\?.*)?$': 'ER-P-ERRE',
     '/_b_a_c_k_e_n_d/ER/procedures/': 'ER-P-ERP',
     '/_b_a_c_k_e_n_d/ER/doctors/': 'ER-P-ERD',
+    '/_b_a_c_k_e_n_d/ER/search_er_billing/': 'ER-P-ERSRB',
     r'^/_b_a_c_k_e_n_d/ER/printbill/?(\?.*)?$': 'ER-P-ERPB',
     r'^/_b_a_c_k_e_n_d/ER/get_er_patients_by_date/?(\?.*)?$': 'ER-P-ERPD',
     

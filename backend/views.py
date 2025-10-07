@@ -77,7 +77,7 @@ def erregister_patient(request):
 
 @csrf_exempt
 @api_view(['GET'])
-# @permission_classes([HasRolePermission])
+@permission_classes([HasRolePermission])
 def get_patient_by_er_number(request):
     er_number = request.GET.get("erNumber")
     if not er_number:
@@ -109,13 +109,60 @@ def get_doctor_list(request):
 @permission_classes([HasRolePermission])
 def get_procedure_list(request):
     mongo_url = os.getenv("GLOBAL_DB_HOST")
-    # mongo_url ="mongodb://admin:YSEgnm42789@103.205.141.245:27017/"
     client = MongoClient(mongo_url)
     db = client["ER"]
     collection = db["er_procedurelist"]
 
-    procedures = list(collection.find({}))  # Fetch all records
-    return JsonResponse(dumps(procedures), safe=False)
+    procedurelist = list(collection.find({}))  # Fetch all records
+    return JsonResponse(dumps(procedurelist), safe=False)
+
+
+@api_view(['GET'])
+@permission_classes([HasRolePermission])
+def get_ct_list(request):
+    mongo_url = os.getenv("GLOBAL_DB_HOST")
+    client = MongoClient(mongo_url)
+    db = client["ER"]
+    collection = db["er_ctlist"]
+
+    ctlist = list(collection.find({}))  # Fetch all records
+    return JsonResponse(dumps(ctlist), safe=False)
+
+
+@api_view(['GET'])
+@permission_classes([HasRolePermission])
+def get_usg_list(request):
+    mongo_url = os.getenv("GLOBAL_DB_HOST")
+    client = MongoClient(mongo_url)
+    db = client["ER"]
+    collection = db["er_usglist"]
+
+    usglist = list(collection.find({}))  # Fetch all records
+    return JsonResponse(dumps(usglist), safe=False)
+
+
+@api_view(['GET'])
+@permission_classes([HasRolePermission])
+def get_mri_list(request):
+    mongo_url = os.getenv("GLOBAL_DB_HOST")
+    client = MongoClient(mongo_url)
+    db = client["ER"]
+    collection = db["er_mrilist"]
+
+    mrilist = list(collection.find({}))  # Fetch all records
+    return JsonResponse(dumps(mrilist), safe=False)
+
+
+@api_view(['GET'])
+@permission_classes([HasRolePermission])
+def get_ct_list(request):
+    mongo_url = os.getenv("GLOBAL_DB_HOST")
+    client = MongoClient(mongo_url)
+    db = client["ER"]
+    collection = db["er_ctlist"]
+
+    ctlist = list(collection.find({}))  # Fetch all records
+    return JsonResponse(dumps(ctlist), safe=False)
 
 
 @api_view(['GET'])
@@ -321,3 +368,35 @@ def get_er_reports(request):
         "register": ERRegisterSerializer(register_qs, many=True).data,
         "billing": ERBillingSerializer(billing_qs, many=True).data,
     })
+
+
+
+
+# views.py
+import os
+from pymongo import MongoClient
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
+
+# Connect to MongoDB
+mongo_url = os.getenv("GLOBAL_DB_HOST")
+client = MongoClient(mongo_url)
+db = client["ER"]
+collection = db["er_billtype"]
+
+@api_view(["GET"])
+def billtype(request):
+    try:
+        # Fetch all documents from collection
+        billtypes_cursor = collection.find({})
+
+        # Convert cursor to list of dicts and convert _id to string
+        billtypes = []
+        for item in billtypes_cursor:
+            item["_id"] = str(item["_id"])
+            billtypes.append(item)
+
+        return Response({"status": "success", "data": billtypes})
+
+    except Exception as e:
+        return Response({"status": "error", "message": str(e)})
