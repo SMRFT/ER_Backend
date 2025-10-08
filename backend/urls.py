@@ -8,10 +8,12 @@ urlpatterns = [
     path('dashboard/', views.get_patients_by_date),
     path('erregisteredit/', views.er_register_view),
     path("procedures/", views.get_procedure_list, name="procedure-list"),
+    path("ct/", views.get_ct_list, name="ct-list"),
+    path("usg/", views.get_usg_list, name="usg-list"),
     path("doctors/", views.get_doctor_list, name="doctor-list"),
     path('get_er_patients_by_date/', views.get_er_patients_by_date, name='get_er_patients_by_date'),
     path('printbill/', views.fetch_er_patient_bills, name='fetch_er_patient_bills'),
     path('erreports/', views.get_er_reports, name='get_er_reports'),
-
-
+    path('billtype/', views.billtype, name='billtype'),
+     path('search_er_billing/', views.search_er_billing, name='search_er_billing'),
 ]
